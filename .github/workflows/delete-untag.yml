@@ -18,7 +18,7 @@ jobs:
           script: |
             const respPackages = await github.request("GET /users/{username}/packages?package_type={package_type}", {
               package_type: "container",
-              username: "${{ env.OWNER }}",
+              username: "gzzchh",
                headers: {
                 'X-GitHub-Api-Version': '2022-11-28'
               }
@@ -31,7 +31,7 @@ jobs:
                 {
                   per_page: 100,
                   packName: packName,
-                  username: "${{ env.OWNER }}",
+                  username: "gzzchh",
                 }
               );
               for (version of response.data) {
@@ -40,12 +40,10 @@ jobs:
                   const deleteResponse = await github.request(
                     `DELETE /users/{org}/packages/container/${packName}/versions/${version.id}`,
                     {
-                      org: "${{ env.OWNER }}",
+                      org: "gzzchh",
                     }
                   );
                   console.log("status " + deleteResponse.status);
                 }
               }
             }
-        env:
-          OWNER: ${{ github.repository_owner }}
