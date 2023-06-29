@@ -28,8 +28,7 @@ jobs:
       - name: 构建 soapy-remote 镜像
         uses: docker/build-push-action@v4
         with:
-          context: emdm/l7rsc2
-          file: emdm/l7rsc2/Dockerfile
+          context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
