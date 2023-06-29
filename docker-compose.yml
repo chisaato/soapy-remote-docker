@@ -5,6 +5,7 @@ services:
     # image: docker.io/library/soapyremote
     network_mode: host
     privileged: true
+    # init: true
     devices:
       - /dev/bus/usb:/dev/bus/usb
     volumes:
