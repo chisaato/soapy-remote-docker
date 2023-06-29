@@ -3,7 +3,6 @@ on:
   schedule:
     - cron: "5 4 * * *"
   workflow_dispatch: {}
-  push:
 
 jobs:
   build:
@@ -15,7 +14,7 @@ jobs:
       - name: Delete untagged images
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const respPackages = await github.request("GET /users/{username}/packages?package_type={package_type}", {
               package_type: "container",
