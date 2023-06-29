@@ -17,19 +17,19 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const respPackages = await github.request("GET /users/{org}/packages", {
+            const respPackages = await github.request("GET /users/{username}/packages", {
               package_type: "container",
-              org: "${{ env.OWNER }}",
+              username: "${{ env.OWNER }}",
             });
             for (pack of respPackages.data) {
               const packName = pack.name;
               console.log(`delete from packages ${packName}`);
               const response = await github.request(
-                `GET /users/{org}/packages/container/${packName}/versions`,
+                `GET /users/{username}/packages/container/${packName}/versions`,
                 {
                   per_page: 100,
                   packName: packName,
-                  org: "${{ env.OWNER }}",
+                  username: "${{ env.OWNER }}",
                 }
               );
               for (version of response.data) {
