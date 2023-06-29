@@ -1,0 +1,13 @@
+version: '3'
+services:
+  soapyremote:
+    # 改为自定义的
+    # image: docker.io/library/soapyremote
+    network_mode: host
+    privileged: true
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    volumes:
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
+    stdin_open: true
+    tty: true
