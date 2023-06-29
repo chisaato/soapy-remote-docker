@@ -17,7 +17,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const respPackages = await github.request("GET /users/{username}/packages", {
+            const respPackages = await github.request("GET /users/{username}/packages?package_type={package_type}", {
               package_type: "container",
               username: "${{ env.OWNER }}",
                headers: {
