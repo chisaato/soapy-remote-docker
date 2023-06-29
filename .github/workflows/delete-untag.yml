@@ -17,25 +17,33 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const respPackages = await github.request("GET /users/{org}/packages",
-              {
-                package_type: "container",
-                org: "${{ env.OWNER }}"
-              }
+            const respPackages = await github.request("GET /users/{org}/packages", {
+              package_type: "container",
+              org: "${{ env.OWNER }}",
+            });
+            for (pack of respPackages.data) {
+              const packName = pack.name;
+              console.log(`delete from packages ${packName}`);
+              const response = await github.request(
+                `GET /users/{org}/packages/container/${packName}/versions`,
+                {
+                  per_page: 100,
+                  packName: packName,
+                  org: "${{ env.OWNER }}",
+                }
               );
-            for (pack of respPackages.data){
-              const packName=pack.name;
-              console.log(`delete from packages ${packName}`)
-              const response = await github.request(`GET /users/${{ env.OWNER }}/packages/container/${packName}/versions`,
-                { per_page: 100 });
-              for(version of response.data) {
-                  if (version.metadata.container.tags.length == 0) {
-                      console.log("delete " + version.id)
-                      const deleteResponse = await github.request(`DELETE /users/${{ env.OWNER }}/packages/container/${packName}/versions/${version.id}`, { });
-                      console.log("status " + deleteResponse.status)
-                  }
+              for (version of response.data) {
+                if (version.metadata.container.tags.length == 0) {
+                  console.log("delete " + version.id);
+                  const deleteResponse = await github.request(
+                    `DELETE /users/{org}/packages/container/${packName}/versions/${version.id}`,
+                    {
+                      org: "${{ env.OWNER }}",
+                    }
+                  );
+                  console.log("status " + deleteResponse.status);
+                }
               }
             }
-
         env:
           OWNER: ${{ github.repository_owner }}
