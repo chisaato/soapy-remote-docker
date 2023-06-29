@@ -20,6 +20,9 @@ jobs:
             const respPackages = await github.request("GET /users/{username}/packages", {
               package_type: "container",
               username: "${{ env.OWNER }}",
+               headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+              }
             });
             for (pack of respPackages.data) {
               const packName = pack.name;
