@@ -2,13 +2,18 @@ version: '3'
 services:
   soapyremote:
     # 改为自定义的
-    # image: docker.io/library/soapyremote
+    image: ccr.ccs.tencentyun.com/karasu/stck:soapy-remote
     network_mode: host
+    command: /bin/bash
     privileged: true
-    # init: true
+    init: true
     devices:
-      - /dev/bus/usb:/dev/bus/usb
+      - /dev/bus/usb
+    # cap_add:
+    #   - CAP_SYS_ADMIN
     volumes:
       - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
+      - /run/udev/control:/run/udev/control
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
     stdin_open: true
     tty: true

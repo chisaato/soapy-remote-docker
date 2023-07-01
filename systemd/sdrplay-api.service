@@ -1,0 +1,11 @@
+[Unit]
+Description=SDRPlay API Service
+
+[Service]
+ExecStart=/opt/bin/sdrplay_apiService
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=sdrplay_api
+
+[Install]
+WantedBy=multi-user.target

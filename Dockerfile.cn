@@ -1,5 +1,5 @@
 FROM debian:12 AS build-base
-# RUN sed -i 's#http://deb.debian.org#http://mirrors.ustc.edu.cn#g' /etc/apt/sources.list.d/debian.sources
+RUN sed -i 's#http://deb.debian.org#http://mirrors.ustc.edu.cn#g' /etc/apt/sources.list.d/debian.sources
 # 构建 SoapySDR 需要这些
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt install -y \
@@ -18,13 +18,14 @@ RUN apt update && apt install -y \
 # 准备构建目录
 RUN mkdir -p /build
 WORKDIR /build
-
+ENV https_proxy=http://127.0.0.1:19261
 # 克隆 SoapySDR 和他的那些仓库
-RUN git clone https://github.com/pothosware/SoapySDR
-RUN git clone https://github.com/pothosware/SoapyRemote
-RUN git clone https://github.com/pothosware/SoapySDRPlay3
+RUN git clone https://hub.fgit.ml/pothosware/SoapySDR
+RUN git clone https://hub.fgit.ml/pothosware/SoapyRemote
+RUN git clone https://hub.fgit.ml/pothosware/SoapySDRPlay3
 
 # 下载 SDRPlay 依赖,解压到 rsp 目录
+ENV https_proxy=
 RUN wget -O rsp-api.run https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.07.1.run
 RUN chmod +x ./rsp-api.run && ./rsp-api.run --quiet --noexec --target rsp
 
@@ -77,8 +78,7 @@ RUN cd SoapySDRPlay3 && \
 
 # 最后的组装
 FROM debian:12-slim
-ENV DEBIAN_FRONTEND=noninteractive
-# RUN sed -i 's#http://deb.debian.org#http://mirrors.ustc.edu.cn#g' /etc/apt/sources.list.d/debian.sources
+RUN sed -i 's#http://deb.debian.org#http://mirrors.ustc.edu.cn#g' /etc/apt/sources.list.d/debian.sources
 RUN apt update && apt install -y --no-install-recommends avahi-daemon libavahi-client3 systemd procps usbutils systemd-sysv
 # 精简版
 # RUN apt update && apt install -y avahi-daemon libavahi-client3 systemd

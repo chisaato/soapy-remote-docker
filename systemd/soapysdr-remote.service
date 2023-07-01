@@ -1,0 +1,13 @@
+[Unit]
+Description=Soapy Remote Service
+After=network.target
+
+[Service]
+EnvironmentFile=-/etc/default/soapy_remote
+ExecStart=/opt/bin/SoapySDRServer --bind=$SOPAY_REMOTE_BIND
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=soapy_remote
+
+[Install]
+WantedBy=multi-user.target

@@ -1,6 +1,8 @@
 name: 构建 soapy-remote 镜像
 on:
   push:
+     paths-ignore:
+      - '.github/workflows/delete-untag.yml'
   workflow_dispatch: {}
 env:
   REGISTRY: ghcr.io
