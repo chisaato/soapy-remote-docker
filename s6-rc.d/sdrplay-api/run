@@ -1,0 +1,2 @@
+#!/command/execlineb -P
+/opt/bin/sdrplay_apiService

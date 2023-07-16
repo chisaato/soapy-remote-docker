@@ -13,6 +13,7 @@ RUN apt update && apt install -y \
     libavahi-client-dev \
     git \
     ca-certificates \
+    xz-utils \
     wget
 
 # 准备构建目录
@@ -64,8 +65,6 @@ RUN cp -f rsp/inc/sdrplay_api*.h /opt/include/. && \
 RUN cp -f rsp/x86_64/sdrplay_apiService /opt/bin/sdrplay_apiService && \
     chmod 755 /opt/bin/sdrplay_apiService
 
-
-
 # 构建 SoapySDRPlay3
 RUN cd SoapySDRPlay3 && \
     mkdir build && \
@@ -74,35 +73,48 @@ RUN cd SoapySDRPlay3 && \
     make -j$(nproc) && \
     make install
 
+# 清理,删掉不必要的
+RUN rm -rf /opt/lib/python* \
+    /opt/lib/pkgconfig \
+    /opt/lib/systemd \
+    /opt/lib/sysctl.d
+
+# 布置 S6-init
+ARG S6_OVERLAY_VERSION=3.1.5.0
+RUN mkdir -p /tmp/s6-temp
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
+RUN tar -C /tmp/s6-temp -Jxpf /tmp/s6-overlay-noarch.tar.xz
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz /tmp
+RUN tar -C /tmp/s6-temp -Jxpf /tmp/s6-overlay-x86_64.tar.xz
+
 
 # 最后的组装
 FROM debian:12-slim
 ENV DEBIAN_FRONTEND=noninteractive
 # RUN sed -i 's#http://deb.debian.org#http://mirrors.ustc.edu.cn#g' /etc/apt/sources.list.d/debian.sources
-RUN apt update && apt install -y --no-install-recommends avahi-daemon libavahi-client3 systemd procps usbutils systemd-sysv
-# 精简版
-# RUN apt update && apt install -y avahi-daemon libavahi-client3 systemd
+RUN apt update && apt install -y --no-install-recommends \
+    avahi-daemon \
+    libavahi-client3 \
+    udev \
+    procps \
+    usbutils
+
 
 # SDRPlay 的设备规则
 COPY --from=build-base /build/rsp/66-mirics.rules /etc/udev/rules.d/66-mirics.rules
 # SDRPlay 更新 USB ID
 COPY --from=build-base /build/rsp/scripts/sdrplay_ids.txt /opt/bin/sdrplay_ids.txt
-# RUN cp -f /var/lib/usbutils/usb.ids /var/lib/usbutils/usb.ids.bak && \
-# RUN cp -f /var/lib/usbutils/usb.ids /var/lib/usbutils/usb.ids.bak && \
-#     echo "cat /opt/bin/sdrplay_ids.txt /var/lib/usbutils/usb.ids.bak > /var/lib/usbutils/usb.ids"
 
 # 从 build-base 阶段拷贝构建结果
 COPY --from=build-base /opt /opt
+# 拷贝 S6-init
+COPY --from=build-base /tmp/s6-temp/ /
+# 拷贝 S6 服务
+COPY  s6-rc.d/ /etc/s6-overlay/s6-rc.d/
 
-# 安装系统服务
-COPY systemd/sdrplay-api.service /etc/systemd/system/sdrplay-api.service
-COPY systemd/soapysdr-remote.service /etc/systemd/system/soapysdr-remote.service
-# 设定开机启动
-RUN systemctl enable sdrplay-api.service && systemctl enable soapysdr-remote.service
-
-ENV LD_LIBRARY_PATH=/opt/lib
+# ENV LD_LIBRARY_PATH=/opt/lib
 ENV PATH=/opt/bin:$PATH
 
 # 给一些运行时必须的变量
 ENV SOPAY_REMOTE_BIND=0.0.0.0:55132
-CMD ["/lib/systemd/systemd"]
+ENTRYPOINT ["/init"]
