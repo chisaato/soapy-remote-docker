@@ -5,9 +5,9 @@ services:
     image: ccr.ccs.tencentyun.com/karasu/stck:soapy-remote
     network_mode: host
     restart: always
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     devices:
       - /dev/bus/usb
     volumes:

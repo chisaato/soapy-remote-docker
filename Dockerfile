@@ -9,12 +9,14 @@ RUN apt update && apt install -y \
     python3-numpy \
     swig \
     python3-distutils \
-    avahi-daemon \
-    libavahi-client-dev \
     git \
     ca-certificates \
     xz-utils \
     wget
+
+# 拿掉了这个
+# avahi-daemon \
+# libavahi-client-dev \
 
 # 准备构建目录
 RUN mkdir -p /build
@@ -93,8 +95,6 @@ FROM debian:12-slim
 ENV DEBIAN_FRONTEND=noninteractive
 # RUN sed -i 's#http://deb.debian.org#http://mirrors.ustc.edu.cn#g' /etc/apt/sources.list.d/debian.sources
 RUN apt update && apt install -y --no-install-recommends \
-    avahi-daemon \
-    libavahi-client3 \
     procps \
     usbutils
 
