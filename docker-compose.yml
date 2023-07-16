@@ -4,17 +4,13 @@ services:
     # 改为自定义的
     image: ccr.ccs.tencentyun.com/karasu/stck:soapy-remote
     network_mode: host
-    privileged: true
+    restart: always
     build:
       context: .
       dockerfile: Dockerfile
     devices:
       - /dev/bus/usb
-    # cap_add:
-    #   - CAP_SYS_ADMIN
     volumes:
       - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
-    #   - /run/udev/control:/run/udev/control
-    #   - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    stdin_open: true
-    tty: true
+    # stdin_open: true
+    # tty: true

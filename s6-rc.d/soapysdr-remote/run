@@ -1,5 +1,5 @@
 #!/bin/sh
 export LD_LIBRARY_PATH=/opt/lib
 # 需要先检测再开启
-/opt/bin/SoapySDRUtil --probe
-/opt/bin/SoapySDRServer --bind=$SOPAY_REMOTE_BIND
+/opt/bin/SoapySDRUtil --probe || exit
+/opt/bin/SoapySDRServer --bind=$SOPAY_REMOTE_BIND || exit
