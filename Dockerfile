@@ -92,12 +92,12 @@ RUN tar -C /tmp/s6-temp -Jxpf /tmp/s6-overlay-x86_64.tar.xz
 
 # 最后的组装
 FROM debian:12-slim
+# FROM frolvlad/alpine-glibc
 ENV DEBIAN_FRONTEND=noninteractive
-# RUN sed -i 's#http://deb.debian.org#http://mirrors.ustc.edu.cn#g' /etc/apt/sources.list.d/debian.sources
-RUN apt update && apt install -y --no-install-recommends \
-    procps \
-    usbutils
-
+# RUN apt update && apt install -y --no-install-recommends \
+#     procps \
+#     usbutils
+# RUN apk add --no-cache libstdc++6
 # SDRPlay 的设备规则
 # COPY --from=build-base /build/rsp/66-mirics.rules /etc/udev/rules.d/66-mirics.rules
 # SDRPlay 更新 USB ID
