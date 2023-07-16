@@ -95,13 +95,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt install -y --no-install-recommends \
     avahi-daemon \
     libavahi-client3 \
-    udev \
     procps \
     usbutils
 
-
 # SDRPlay 的设备规则
-COPY --from=build-base /build/rsp/66-mirics.rules /etc/udev/rules.d/66-mirics.rules
+# COPY --from=build-base /build/rsp/66-mirics.rules /etc/udev/rules.d/66-mirics.rules
 # SDRPlay 更新 USB ID
 COPY --from=build-base /build/rsp/scripts/sdrplay_ids.txt /opt/bin/sdrplay_ids.txt
 
@@ -112,7 +110,7 @@ COPY --from=build-base /tmp/s6-temp/ /
 # 拷贝 S6 服务
 COPY  s6-rc.d/ /etc/s6-overlay/s6-rc.d/
 
-# ENV LD_LIBRARY_PATH=/opt/lib
+ENV LD_LIBRARY_PATH=/opt/lib
 ENV PATH=/opt/bin:$PATH
 
 # 给一些运行时必须的变量
