@@ -28,7 +28,10 @@ RUN git clone https://github.com/pothosware/SoapyRemote
 RUN git clone https://github.com/pothosware/SoapySDRPlay3
 
 # 下载 SDRPlay 依赖,解压到 rsp 目录
-RUN wget -O rsp-api.run https://www.sdrplay.com/software/SDRplay_RSP_API-Linux-3.07.1.run
+# 官方把直链下载改成了 WPDM(WordPress Download Manager)网盘中转,
+# 这个 URL 是 hardware-api-linux 下载页里 wpdm-download-link 的 data-downloadurl,
+# 会 302 跳到 SharePoint 的实际文件,wpdmdl=1906 目前是稳定的
+RUN wget -O rsp-api.run "https://sdrplay.com/download/hardware-api-linux/?wpdmdl=1906"
 RUN chmod +x ./rsp-api.run && ./rsp-api.run --quiet --noexec --target rsp
 
 
@@ -49,14 +52,14 @@ RUN cd SoapyRemote && \
     make install
 
 # 部署 SDRPlay 二进制依赖
-ENV VERS="3.07"
+ENV VERS="3.15"
 ENV MAJVERS="3"
-# RUN cp /build/rsp/x86_64/libsdrplay_api.so.3.07 /opt/lib/
 # 装库
+# 新版安装包把架构目录从 x86_64 改成了 amd64(跟 dpkg --print-architecture 对齐)
 RUN set -x && rm -f /opt/lib/libsdrplay_api.so.${VERS} && \
     rm -f /opt/lib/libsdrplay_api.so && \
     rm -f /opt/lib/libsdrplay_api.so.${MAJVERS} && \
-    cp -f rsp/x86_64/libsdrplay_api.so.${VERS} /opt/lib/. && \
+    cp -f rsp/amd64/libsdrplay_api.so.${VERS} /opt/lib/. && \
     chmod 644 /opt/lib/libsdrplay_api.so.${VERS} && \
     ln -s /opt/lib/libsdrplay_api.so.${VERS} /opt/lib/libsdrplay_api.so.${MAJVERS} && \
     ln -s /opt/lib/libsdrplay_api.so.${MAJVERS} /opt/lib/libsdrplay_api.so
@@ -64,7 +67,7 @@ RUN set -x && rm -f /opt/lib/libsdrplay_api.so.${VERS} && \
 RUN cp -f rsp/inc/sdrplay_api*.h /opt/include/. && \
     chmod 644 /opt/include/sdrplay_api*.h
 # 装 bin
-RUN cp -f rsp/x86_64/sdrplay_apiService /opt/bin/sdrplay_apiService && \
+RUN cp -f rsp/amd64/sdrplay_apiService /opt/bin/sdrplay_apiService && \
     chmod 755 /opt/bin/sdrplay_apiService
 
 # 构建 SoapySDRPlay3
@@ -100,8 +103,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # RUN apk add --no-cache libstdc++6
 # 容器内以 root 运行 sdrplay_apiService,不需要 udev 规则来放宽设备权限,
 # USB 热插拔权限改由宿主机 docker 的 device_cgroup_rules 处理(见 docker-compose.yml)
-# SDRPlay 更新 USB ID
-COPY --from=build-base /build/rsp/scripts/sdrplay_ids.txt /opt/bin/sdrplay_ids.txt
+# 注:新版安装包(3.15)已经不再附带 scripts/sdrplay_ids.txt,这个文件被官方去掉了
 
 # 从 build-base 阶段拷贝构建结果
 COPY --from=build-base /opt /opt
