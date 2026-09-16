@@ -98,8 +98,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 #     procps \
 #     usbutils
 # RUN apk add --no-cache libstdc++6
-# SDRPlay 的设备规则
-# COPY --from=build-base /build/rsp/66-mirics.rules /etc/udev/rules.d/66-mirics.rules
+# 容器内以 root 运行 sdrplay_apiService,不需要 udev 规则来放宽设备权限,
+# USB 热插拔权限改由宿主机 docker 的 device_cgroup_rules 处理(见 docker-compose.yml)
 # SDRPlay 更新 USB ID
 COPY --from=build-base /build/rsp/scripts/sdrplay_ids.txt /opt/bin/sdrplay_ids.txt
 

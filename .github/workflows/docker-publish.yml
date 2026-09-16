@@ -1,0 +1,80 @@
+name: 发布 soapy-remote 镜像到 GHCR
+
+on:
+  # 推送 tag 时自动触发(格式:v1.0.0, v0.2.1-beta 等)
+  push:
+    tags:
+      - "v*"
+  # 也支持手动触发,方便测试
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run(只构建,不推送)"
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+# 同一时间只允许一个发布任务
+concurrency:
+  group: docker-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: 登录到 GHCR
+        if: ${{ !inputs.dry_run }}
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 提取 Docker 元数据
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ github.event_name == 'push' }}
+            type=sha,enable=${{ github.event_name == 'workflow_dispatch' }}
+
+      - name: 构建并推送镜像
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: ${{ !inputs.dry_run }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: 发布结果
+        if: always()
+        run: |
+          echo "## 镜像发布结果" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "✅ Dry run 完成,未实际推送" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ job.status }}" = "success" ]; then
+            echo "✅ 发布成功" >> "$GITHUB_STEP_SUMMARY"
+            echo "镜像: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "Tags:" >> "$GITHUB_STEP_SUMMARY"
+            echo '${{ steps.meta.outputs.tags }}' | sed 's/^/- /' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ 发布失败" >> "$GITHUB_STEP_SUMMARY"
+          fi

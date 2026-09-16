@@ -5,7 +5,13 @@ services:
     image: ccr.ccs.tencentyun.com/karasu/stck:soapy-remote
     network_mode: host
     restart: always
+    # 容器启动时把当前已存在的 usb 设备节点挂进来
     devices:
       - /dev/bus/usb
+    # 放宽整个 USB 设备大类(major 189)的 cgroup 权限,
+    # 这样拔插后新出现的设备节点(新的 minor 号)也能直接被容器访问,
+    # 不需要重建容器,也不需要 --privileged
+    device_cgroup_rules:
+      - 'c 189:* rmw'
     # stdin_open: true
     # tty: true
